@@ -70,6 +70,7 @@ public class JavaCppPresetsExampleApplication {
         recorder.setVideoOption("preset", "veryfast");
         recorder.setFormat("mp4");
         recorder.setFrameRate(30);
+        recorder.setVideoBitrate(9000);
         recorder.setVideoOption("f", "fps=30,format=yuv420p");
         recorder.start();
         List<BufferedImage> frames = new ArrayList<>();
