@@ -26,6 +26,7 @@
         <javacv.version>1.2</javacv.version>
         <opencv.version>3.1.0</opencv.version>
         <ffmpeg.version>3.1.2</ffmpeg.version>
+        <flycapture.version>2.9.3.43</flycapture.version>
         <platform.name>${os.name}-${os.arch}</platform.name>
         <javacpp.platform>${platform.name}</javacpp.platform>
         <log4j.file>${project.basedir}\log\${project.build.finalName}.log</log4j.file>
@@ -71,6 +72,12 @@
             <groupId>org.bytedeco.javacpp-presets</groupId>
             <artifactId>ffmpeg</artifactId>
             <version>${ffmpeg.version}-${javacpp.version}</version>
+            <classifier>${platform.name}</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco.javacpp-presets</groupId>
+            <artifactId>flycapture</artifactId>
+            <version>${flycapture.version}-${javacpp.version}</version>
             <classifier>${platform.name}</classifier>
         </dependency>
     </dependencies>

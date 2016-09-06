@@ -1,23 +1,19 @@
 package com.gnp;
 
+import org.bytedeco.javacpp.FlyCapture2;
 import org.bytedeco.javacpp.avcodec;
 import org.bytedeco.javacpp.opencv_core;
 import org.bytedeco.javacv.*;
-import org.bytedeco.javacv.Frame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import javax.imageio.ImageIO;
-import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-import static java.awt.image.BufferedImage.TYPE_INT_RGB;
 import static org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_imgproc.CV_INTER_NN;
 import static org.bytedeco.javacpp.opencv_imgproc.cvResize;
@@ -27,6 +23,7 @@ public class JavaCppPresetsExampleApplication {
     private static final Logger logger = LoggerFactory.getLogger(JavaCppPresetsExampleApplication.class);
     private static final int WIDTH = 1024;
     private static final int HEIGHT = 768;
+    private static final int FRAME_RATE = 30;
 
     public static void main(String[] args) {
         SpringApplication.run(JavaCppPresetsExampleApplication.class, args);
@@ -62,30 +59,31 @@ public class JavaCppPresetsExampleApplication {
         }
     }
 
-    private static void screenshot(File videoFile) throws FrameRecorder.Exception {
-        Java2DFrameConverter converter = new Java2DFrameConverter();
+    private static void screenshot(File videoFile) throws FrameRecorder.Exception, FrameGrabber.Exception {
+        FlyCapture2FrameGrabber frameGrabber = new FlyCapture2FrameGrabber(0);
+        frameGrabber.setImageMode(FrameGrabber.ImageMode.COLOR);
+        frameGrabber.setPixelFormat(FlyCapture2.PIXEL_FORMAT_422YUV8);
+        frameGrabber.setFrameRate(FRAME_RATE);
+        frameGrabber.setImageWidth(WIDTH);
+        frameGrabber.setImageHeight(HEIGHT);
         FFmpegFrameRecorder recorder = new FFmpegFrameRecorder(videoFile, WIDTH, HEIGHT);
-        recorder.setVideoQuality(100);
         recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
         recorder.setVideoOption("preset", "veryfast");
         recorder.setFormat("mp4");
-        recorder.setFrameRate(30);
-        recorder.setVideoBitrate(9000);
-        recorder.setVideoOption("f", "fps=30,format=yuv420p");
+        recorder.setFrameRate(FRAME_RATE);
+        recorder.setVideoBitrate(WIDTH * HEIGHT);
+
+        frameGrabber.start();
         recorder.start();
-        List<BufferedImage> frames = new ArrayList<>();
 
-        for (int i = 0; i < 3 * 30; i++) {
-            BufferedImage bufferedImage = new BufferedImage(WIDTH, HEIGHT, TYPE_INT_RGB);
-            Graphics2D graphics2D = bufferedImage.createGraphics();
-            graphics2D.fillOval(200, i, 30, 30);
-            frames.add(bufferedImage);
-        }
-
-        for (BufferedImage bufferedImage : frames) {
-            Frame frame = converter.convert(bufferedImage);
+        for (int i = 0; i < 30 * 30; i++) {
+            logger.debug("Grab {}/150 Frame", i);
+            Frame frame = frameGrabber.grab();
             recorder.record(frame);
         }
+
+        frameGrabber.release();
+
         recorder.stop();
         recorder.release();
     }
